@@ -166,6 +166,23 @@
   @media (max-width:640px){
     .row{grid-template-columns:1fr auto}
     .display{font-size:56px}
+
+    /* --- mobile chrome fixes: keep the fixed controls from overlapping slide content --- */
+    /* push every slide's content below the top counter + fullscreen button... */
+    .slide,#ingredients{padding-top:64px}
+    /* ...and above the bottom nav pills + dots (segments need extra room for the note) */
+    .slide{padding-bottom:72px}
+    .seg{padding-bottom:92px}
+    /* arrow-only nav pills — the labels were colliding with the centered dots */
+    .nav{max-width:none;width:44px;height:44px;border-radius:22px;padding:0;justify-content:center;gap:0}
+    .nav .lbl{display:none}
+    #prev{left:14px}#next{right:14px}
+    /* tighten the dots so they sit clearly between the two pills */
+    #dots{gap:6px}
+    .dot.on{width:18px}
+    /* let the descriptive quantities (e.g. "to taste · freshly cracked") wrap
+       instead of running off the right edge; numeric qtys stay on one line */
+    .row.taste .qty{white-space:normal}
   }
 </style>
 </head>
