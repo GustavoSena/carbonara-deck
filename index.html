@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carbonara — presenter deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* ---- Palette drawn from the dish itself ---- */
+  :root{
+    --carbone:#1b1815;      /* charcoal stage (pepper / coal) */
+    --carbone-2:#211d19;
+    --pepe:#0f0d0b;
+    --tuorlo:#f0b429;       /* egg-yolk gold — the signature accent */
+    --tuorlo-soft:#f6c95a;
+    --guanciale:#d98a71;    /* warm pork rosé — secondary */
+    --pecorino:#efe6cf;     /* pale cheese cream — primary text */
+    --pasta-water:#f7f2e6;
+    --muted:#9a8f7f;
+    --line:rgba(239,230,207,0.14);
+    --card:rgba(239,230,207,0.035);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--carbone);
+    color:var(--pecorino);
+    font-family:'Inter',system-ui,sans-serif;
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* subtle warmth so the stage isn't flat black */
+  #stage::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(1100px 700px at 78% -8%, rgba(240,180,41,0.10), transparent 60%),
+      radial-gradient(900px 600px at 8% 108%, rgba(217,138,113,0.08), transparent 60%);
+  }
+
+  #stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+  .slide{
+    position:absolute;inset:0;display:none;
+    flex-direction:column;justify-content:center;
+    padding:clamp(28px,5vw,84px);
+    z-index:1;
+  }
+  .slide.active{display:flex;animation:rise .5s cubic-bezier(.22,.9,.3,1)}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.slide.active{animation:none}}
+
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.28em;
+    text-transform:uppercase;color:var(--tuorlo);margin-bottom:22px;
+  }
+  h1{font-family:'Fraunces',serif;font-weight:900;line-height:.92;letter-spacing:-.01em}
+  h2{font-family:'Fraunces',serif;font-weight:600;line-height:1.0}
+  .display{font-size:clamp(52px,12vw,168px)}
+  .display em{font-style:italic;color:var(--tuorlo)}
+
+  /* ---------- Cover ---------- */
+  #cover .sub{max-width:640px;margin-top:26px;font-size:clamp(16px,1.5vw,20px);color:var(--muted);line-height:1.6}
+  #cover .by{margin-top:40px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--pecorino)}
+  #cover .by b{color:var(--tuorlo);font-weight:500}
+
+  /* ---------- Agenda ---------- */
+  #agenda h2{font-size:clamp(30px,4vw,46px);margin-bottom:30px}
+  .index{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;max-width:1100px}
+  .idx{
+    text-align:left;background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:18px 20px;color:var(--pecorino);cursor:pointer;display:flex;gap:16px;align-items:baseline;
+    transition:border-color .18s,background .18s,transform .18s;font:inherit;
+  }
+  .idx:hover,.idx:focus-visible{border-color:var(--tuorlo);background:rgba(240,180,41,0.06);transform:translateY(-2px);outline:none}
+  .idx .n{font-family:'JetBrains Mono',monospace;color:var(--tuorlo);font-size:13px;min-width:24px}
+  .idx .t{font-size:17px;font-weight:500}
+
+  /* ---------- Ingredients (signature) ---------- */
+  #ingredients{padding-top:clamp(24px,4vw,56px)}
+  .ing-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:26px;max-width:1180px}
+  .ing-head h2{font-size:clamp(30px,4.4vw,54px)}
+  .ing-head h2 em{font-style:italic;color:var(--tuorlo)}
+  .scaler{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 10px 8px 20px}
+  .scaler label{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
+  .step{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--pecorino);font-size:20px;cursor:pointer;transition:.15s;display:grid;place-items:center}
+  .step:hover{border-color:var(--tuorlo);color:var(--tuorlo)}
+  .step:active{transform:scale(.94)}
+  #servings{font-family:'Fraunces',serif;font-weight:900;font-size:34px;color:var(--tuorlo);min-width:44px;text-align:center}
+
+  .spec{border-top:1px solid var(--line);max-width:1180px}
+  .row{
+    display:grid;grid-template-columns:1.1fr auto;gap:20px;align-items:center;
+    padding:16px 4px;border-bottom:1px solid var(--line);
+  }
+  .row .left{display:flex;flex-direction:column;gap:4px}
+  .row .nm{font-family:'Fraunces',serif;font-size:clamp(19px,2vw,26px);font-weight:600}
+  .row .hint{font-size:13.5px;color:var(--muted);line-height:1.4}
+  .row .qty{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:clamp(18px,2vw,26px);color:var(--tuorlo);text-align:right;white-space:nowrap}
+  .row .qty small{display:block;font-weight:400;font-size:12px;color:var(--muted);margin-top:3px;letter-spacing:.02em}
+  .row.taste .qty{color:var(--guanciale)}
+
+  /* ---------- Segment slides ---------- */
+  /* extra bottom room so the note never sits under the nav pills */
+  .seg{padding:clamp(22px,3.5vw,52px);padding-bottom:84px}
+  .seg .topline{display:flex;align-items:baseline;gap:20px;margin-bottom:14px}
+  .seg .segn{font-family:'JetBrains Mono',monospace;color:var(--tuorlo);font-size:14px;letter-spacing:.12em}
+  .seg h2{font-size:clamp(26px,3.6vw,46px)}
+  /* the frame is just a centering box; the video/iframe/placeholder size themselves */
+  .videoframe{
+    position:relative;flex:1;min-height:0;width:100%;
+    display:flex;align-items:center;justify-content:center;
+  }
+  /* video is a replaced element: keep its own aspect ratio, fit the box, no bars, no crop */
+  .videoframe video{
+    max-width:min(1500px,100%);max-height:100%;width:auto;height:auto;
+    background:#000;border:1px solid var(--line);border-radius:18px;display:none;
+  }
+  .videoframe iframe{
+    width:min(1500px,100%);max-height:100%;aspect-ratio:16/9;
+    border:1px solid var(--line);border-radius:18px;display:none;
+  }
+  .placeholder{
+    text-align:center;color:var(--muted);
+    width:min(1500px,100%);aspect-ratio:16/9;
+    border:1px solid var(--line);border-radius:18px;
+    background:linear-gradient(180deg,#161310,#0f0d0b);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;
+  }
+  .placeholder .icon{font-size:40px;margin-bottom:12px;opacity:.5}
+  .placeholder .load{
+    margin-top:18px;display:inline-flex;align-items:center;gap:9px;cursor:pointer;
+    font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--carbone);background:var(--tuorlo);border:none;border-radius:999px;padding:11px 20px;transition:.18s;
+  }
+  .placeholder .load:hover{background:var(--tuorlo-soft)}
+  .placeholder input[type=file]{display:none}
+  .seg .note{margin-top:16px;font-size:15px;color:var(--muted);line-height:1.5;max-width:900px}
+  .seg .note b{color:var(--pecorino);font-weight:500}
+
+  /* ---------- Discussion ---------- */
+  #discussion{align-items:flex-start}
+  #discussion h1{font-size:clamp(40px,7vw,96px)}
+  #discussion .sub{margin-top:20px;color:var(--muted);font-size:clamp(16px,1.6vw,20px);max-width:560px;line-height:1.6}
+
+  /* ---------- Chrome: progress + controls ---------- */
+  #dots{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:10}
+  .dot{width:8px;height:8px;border-radius:50%;background:rgba(239,230,207,0.22);border:none;cursor:pointer;padding:0;transition:.2s}
+  .dot:hover{background:var(--pecorino)}
+  .dot.on{background:var(--tuorlo);width:22px;border-radius:6px}
+  .nav{position:fixed;bottom:16px;z-index:10;background:rgba(27,24,21,0.6);border:1px solid var(--line);color:var(--pecorino);
+       height:42px;border-radius:21px;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:9px;padding:0 16px;
+       max-width:40vw;backdrop-filter:blur(4px)}
+  .nav:hover{border-color:var(--tuorlo);color:var(--tuorlo)}
+  .nav:disabled{opacity:.35;cursor:default;pointer-events:none}
+  .nav .arw{font-size:19px;line-height:1;flex:none}
+  .nav .lbl{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .nav .lbl:empty{display:none}
+  #prev{left:20px}#next{right:20px}
+  #fs{position:fixed;top:18px;right:18px;z-index:10;background:transparent;border:1px solid var(--line);color:var(--muted);
+      border-radius:8px;padding:7px 12px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;cursor:pointer;transition:.15s}
+  #fs:hover{border-color:var(--tuorlo);color:var(--tuorlo)}
+  #counter{position:fixed;top:20px;left:20px;z-index:10;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);letter-spacing:.12em}
+  #counter b{color:var(--tuorlo)}
+
+  @media (max-width:640px){
+    .row{grid-template-columns:1fr auto}
+    .display{font-size:56px}
+  }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+
+<div id="counter"><b id="cur">01</b> / <span id="total">00</span></div>
+<button id="fs" aria-label="Toggle fullscreen">⤢ Fullscreen</button>
+<button id="prev" class="nav" aria-label="Previous"><span class="arw">‹</span><span class="lbl"></span></button>
+<button id="next" class="nav" aria-label="Next"><span class="lbl"></span><span class="arw">›</span></button>
+<div id="dots" role="tablist" aria-label="Slides"></div>
+
+<script>
+/* =========================================================================
+   EDIT ME — this is the whole config. Change numbers, titles, or notes here.
+   To pin a clip permanently, put a file path or YouTube/Vimeo embed URL in
+   "video". Otherwise just click "Load clip" on the slide during your talk.
+   ========================================================================= */
+const CONFIG = {
+  title: "Carbonara",
+  tagline: "How I make it — recorded, then walked through, one step at a time.",
+  presenter: "Gustavo",       // shown on the cover
+  team: "Subvisual",          // shown on the cover
+  defaultServings: 3,
+
+  // Ingredients — your quantities. perPerson scales; "text" ones stay fixed.
+  ingredients: [
+    { nm:"Pasta",           perPerson:120, unit:"g", hint:"spaghetti, or your shape of choice" },
+    { nm:"Eggs",            perPerson:2,   unit:"",  hint:"keep it mostly yolk — take out most of the whites, not all", round:true, suffix:"eggs" },
+    { nm:"Guanciale",       perPerson:60,  unit:"g", hint:"cut to your preference" },
+    { nm:"Pecorino Romano", perPerson:50,  unit:"g", hint:"to taste", pecorino:true },
+    { nm:"Black pepper",    text:"to taste · freshly cracked" },
+    { nm:"Salt",            text:"for the pasta water" },
+  ],
+
+  // Segments — rename, reorder, add or remove freely. "note" is just a cue
+  // for you; edit or blank it. "video" optional (path or embed URL).
+  segments: [
+    { t:"The ingredients",        note:"Play the clip, then run through what's on the board.", video:"segments/seg1_ingredients.mp4" },
+    { t:"Prep the guanciale",     note:"Thin is what matters; set aside big fatty bits to render first.", video:"segments/seg2_guanciale.mp4" },
+    { t:"Egg & pecorino mix",     note:"Split the cheese — thin shreds for the sauce, coarser on top. Keep it mostly yolk (remove most whites, not all). ~60% in the mix / ~40% on top.", video:"segments/seg3_egg-pecorino.mp4" },
+    { t:"Pasta in salted water",  note:"Go easy on the salt (guanciale and pecorino are salty). Loosen the egg-cheese sauce with a splash of pasta water, then run water through the pasta to stop the cooking.", video:"segments/seg4_pasta.mp4" },
+    { t:"Render the guanciale",   note:"Melt the reserved fatty bits first, then render low and slow until deep gold and crisp. Lift it out; leave the fat in the pan (spoon off any excess to save).", video:"segments/seg5_render.mp4" },
+    { t:"Combine off the heat",   note:"The one to slow down on. Toss the pasta in the fat, then combine OFF the heat — toss fast so the egg turns creamy, not scrambled.", video:"segments/seg6_combine.mp4" },
+    { t:"Plate & finish",         note:"Twirl into a nest; finish with crispy guanciale, the reserved pecorino, and black pepper.", video:"segments/seg7_plate.mp4" },
+  ],
+};
+/* ===================== end of edit zone ===================== */
+
+const $ = (s,el=document)=>el.querySelector(s);
+const stage = $("#stage");
+const slides = [];   // {el, onEnter, onLeave}
+
+/* ---- helpers ---- */
+function el(tag, cls, html){ const n=document.createElement(tag); if(cls)n.className=cls; if(html!=null)n.innerHTML=html; return n; }
+
+/* ---- Cover ---- */
+function coverSlide(){
+  const s = el("div","slide"); s.id="cover";
+  s.innerHTML = `
+    <div class="eyebrow">A team walk-through</div>
+    <h1 class="display">Carbon<em>ara</em></h1>
+    <p class="sub">${CONFIG.tagline}</p>
+    <p class="by">presented live by <b>${CONFIG.presenter}</b> · ${CONFIG.team}</p>`;
+  slides.push({el:s, label:"Intro"});
+  stage.appendChild(s);
+}
+
+/* ---- Agenda ---- */
+function agendaSlide(){
+  const s = el("div","slide"); s.id="agenda";
+  s.appendChild(el("div","eyebrow","The run of show"));
+  s.appendChild(el("h2",null,"What we'll go through"));
+  const grid = el("div","index");
+  CONFIG.segments.forEach((seg,i)=>{
+    const b = el("button","idx");
+    b.innerHTML = `<span class="n">${String(i+1).padStart(2,"0")}</span><span class="t">${seg.t}</span>`;
+    b.onclick = ()=> go(segStart + i);
+    grid.appendChild(b);
+  });
+  s.appendChild(grid);
+  slides.push({el:s, label:"Agenda"});
+  stage.appendChild(s);
+}
+
+/* ---- Ingredients (signature scaler) ---- */
+let servings = CONFIG.defaultServings;
+function ingredientsSlide(){
+  const s = el("div","slide"); s.id="ingredients";
+  s.innerHTML = `
+    <div class="ing-head">
+      <div>
+        <div class="eyebrow">The shopping list</div>
+        <h2>Simple. Six <em>things</em>.</h2>
+      </div>
+      <div class="scaler">
+        <label>Serves</label>
+        <button class="step" id="minus" aria-label="Fewer people">–</button>
+        <span id="servings">${servings}</span>
+        <button class="step" id="plus" aria-label="More people">+</button>
+      </div>
+    </div>
+    <div class="spec" id="spec"></div>`;
+  slides.push({el:s, label:"Ingredients", onEnter:renderSpec});
+  stage.appendChild(s);
+  // wire buttons after in DOM
+  setTimeout(()=>{
+    $("#minus",s).onclick=()=>{ servings=Math.max(1,servings-1); renderSpec(); };
+    $("#plus",s).onclick =()=>{ servings=Math.min(24,servings+1); renderSpec(); };
+  },0);
+}
+function fmt(n){ return Number.isInteger(n)? n : Math.round(n); }
+function renderSpec(){
+  const spec = $("#spec"); if(!spec) return;
+  $("#servings").textContent = servings;
+  spec.innerHTML = "";
+  CONFIG.ingredients.forEach(ing=>{
+    const row = el("div","row" + (ing.text||ing.pecorino?" taste":""));
+    let qty;
+    if(ing.text){
+      qty = ing.text;
+    } else if(ing.pecorino){
+      const total = ing.perPerson*servings;
+      const mix = Math.round(total*0.6), top = total-mix;
+      qty = `${total} g <small>~${mix} g in the mix · ~${top} g on top</small>`;
+    } else {
+      const v = fmt(ing.perPerson*servings);
+      qty = `${v}${ing.unit?" "+ing.unit:(ing.suffix?" "+ing.suffix:"")}`;
+    }
+    row.innerHTML = `
+      <div class="left">
+        <span class="nm">${ing.nm}</span>
+        <span class="hint">${ing.hint||""}</span>
+      </div>
+      <div class="qty">${qty}</div>`;
+    spec.appendChild(row);
+  });
+}
+
+/* ---- Segment slides ---- */
+let segStart = 0;
+function segmentSlide(seg, i){
+  const s = el("div","slide seg"); s.dataset.seg=i;
+  s.innerHTML = `
+    <div class="topline">
+      <span class="segn">${String(i+1).padStart(2,"0")} / ${String(CONFIG.segments.length).padStart(2,"0")}</span>
+      <h2>${seg.t}</h2>
+    </div>
+    <div class="videoframe">
+      <video controls playsinline></video>
+      <iframe allow="autoplay; fullscreen" allowfullscreen></iframe>
+      <div class="placeholder">
+        <div class="icon">▶</div>
+        <div>Your clip for “${seg.t}” goes here</div>
+        <label class="load">Load clip<input type="file" accept="video/*"></label>
+      </div>
+    </div>
+    ${seg.note ? `<div class="note"><b>Note:</b> ${seg.note}</div>` : ``}`;
+
+  const video = $("video",s), frame=$("iframe",s), ph=$(".placeholder",s), file=$("input",s);
+
+  // Pinned URL from CONFIG?
+  if(seg.video){
+    if(/\.(mp4|webm|ogg|mov)$/i.test(seg.video)){
+      video.src=seg.video; video.style.display="block"; ph.style.display="none";
+    } else {
+      frame.src=seg.video; frame.style.display="block"; ph.style.display="none";
+    }
+  }
+  // Load a local clip live
+  file.onchange = e=>{
+    const f=e.target.files[0]; if(!f) return;
+    video.src=URL.createObjectURL(f); video.style.display="block";
+    frame.style.display="none"; ph.style.display="none";
+    // If we're already sitting on this slide, start it right away.
+    if(s.classList.contains("active")){
+      const p=video.play(); if(p&&p.catch) p.catch(()=>{});
+    }
+  };
+
+  slides.push({
+    el:s,
+    label:seg.t,
+    onEnter:()=>{
+      // Autoplay the clip when we land on this segment (only if a video is loaded).
+      if(video.src && video.style.display!=="none"){
+        try{ video.currentTime=0; }catch(_){}
+        const p=video.play();
+        if(p&&p.catch) p.catch(()=>{ /* browser blocked autoplay — controls still work */ });
+      }
+    },
+    onLeave:()=>{ try{video.pause();}catch(_){}}
+  });
+  stage.appendChild(s);
+}
+
+/* ---- Discussion ---- */
+function discussionSlide(){
+  const s = el("div","slide"); s.id="discussion";
+  s.innerHTML = `
+    <div class="eyebrow">Over to you</div>
+    <h1>Questions?</h1>
+    <p class="sub">Ratios, swaps, what goes wrong — ask away.</p>`;
+  slides.push({el:s, label:"Questions"});
+  stage.appendChild(s);
+}
+
+/* ---- Build the deck ---- */
+coverSlide();
+agendaSlide();
+ingredientsSlide();
+segStart = slides.length;
+CONFIG.segments.forEach((seg,i)=> segmentSlide(seg,i));
+discussionSlide();
+
+/* ---- Navigation ---- */
+let idx = 0;
+const dotsWrap = $("#dots");
+slides.forEach((_,i)=>{
+  const d=el("button","dot"); d.onclick=()=>go(i);
+  dotsWrap.appendChild(d);
+});
+$("#total").textContent = String(slides.length).padStart(2,"0");
+
+function go(n){
+  n=Math.max(0,Math.min(slides.length-1,n));
+  if(n===idx && slides[idx].el.classList.contains("active")) return;
+  const prev = slides[idx];
+  if(prev && prev.onLeave) prev.onLeave();
+  prev.el.classList.remove("active");
+  idx=n;
+  const cur = slides[idx];
+  cur.el.classList.add("active");
+  if(cur.onEnter) cur.onEnter();
+  dotsWrap.querySelectorAll(".dot").forEach((d,i)=>d.classList.toggle("on",i===idx));
+  $("#cur").textContent = String(idx+1).padStart(2,"0");
+  // Label the arrows with the step they lead to.
+  const prevBtn=$("#prev"), nextBtn=$("#next");
+  $(".lbl",prevBtn).textContent = idx>0 ? slides[idx-1].label : "";
+  $(".lbl",nextBtn).textContent = idx<slides.length-1 ? slides[idx+1].label : "";
+  prevBtn.disabled = idx===0;
+  nextBtn.disabled = idx===slides.length-1;
+}
+$("#next").onclick=()=>go(idx+1);
+$("#prev").onclick=()=>go(idx-1);
+document.addEventListener("keydown",e=>{
+  // If a video is focused, let arrows/space control the video (seek, play/pause)
+  // instead of changing slides — so you can scrub within a clip.
+  const ae=document.activeElement;
+  if(ae && ae.tagName==="VIDEO" && ["ArrowLeft","ArrowRight"," "].includes(e.key)) return;
+  if(["ArrowRight","PageDown"].includes(e.key)||e.key===" "){ e.preventDefault(); go(idx+1); }
+  else if(["ArrowLeft","PageUp"].includes(e.key)){ e.preventDefault(); go(idx-1); }
+  else if(e.key==="Home") go(0);
+  else if(e.key==="End") go(slides.length-1);
+});
+$("#fs").onclick=()=>{
+  if(!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+  else document.exitFullscreen?.();
+};
+go(0);
+</script>
+</body>
+</html>
